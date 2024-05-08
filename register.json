@@ -1,0 +1,15 @@
+{
+    "companyName": "jaiSoln",
+    "clientID": "88d0329f-3dce-4135-91f5-9b3026d6f8ee",
+    "clientSecret": "KRUnXvugozSwdxZg",
+    "ownerName": "Akash",
+    "ownerEmail": "akashjaiswal334@gmail.com",
+    "rollNo": "21052935"
+}
+
+//token
+{
+    "token_type": "Bearer",
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiZXhwIjoxNzE1MTQ2NjMxLCJpYXQiOjE3MTUxNDYzMzEsImlzcyI6IkFmZm9yZG1lZCIsImp0aSI6Ijg4ZDAzMjlmLTNkY2UtNDEzNS05MWY1LTliMzAyNmQ2ZjhlZSIsInN1YiI6ImFrYXNoamFpc3dhbDMzNEBnbWFpbC5jb20ifSwiY29tcGFueU5hbWUiOiJqYWlTb2xuIiwiY2xpZW50SUQiOiI4OGQwMzI5Zi0zZGNlLTQxMzUtOTFmNS05YjMwMjZkNmY4ZWUiLCJjbGllbnRTZWNyZXQiOiJLUlVuWHZ1Z296U3dkeFpnIiwib3duZXJOYW1lIjoiQWthc2giLCJvd25lckVtYWlsIjoiYWthc2hqYWlzd2FsMzM0QGdtYWlsLmNvbSIsInJvbGxObyI6IjIxMDUyOTM1In0.grTIe7Z9ybI-9AY-LUjbT8T1P7aQUfgFmrCV8zVk2WQ",
+    "expires_in": 1715146631
+}
