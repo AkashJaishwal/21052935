@@ -1,7 +1,12 @@
-from flask import Flask, request, jsonify
 import requests
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
+
+# Add your authorization header token here
+auth_header = {
+    'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiZXhwIjoxNzE1MTUwOTY1LCJpYXQiOjE3MTUxNTA2NjUsImlzcyI6IkFmZm9yZG1lZCIsImp0aSI6Ijg4ZDAzMjlmLTNkY2UtNDEzNS05MWY1LTliMzAyNmQ2ZjhlZSIsInN1YiI6ImFrYXNoamFpc3dhbDMzNEBnbWFpbC5jb20ifSwiY29tcGFueU5hbWUiOiJqYWlTb2xuIiwiY2xpZW50SUQiOiI4OGQwMzI5Zi0zZGNlLTQxMzUtOTFmNS05YjMwMjZkNmY4ZWUiLCJjbGllbnRTZWNyZXQiOiJLUlVuWHZ1Z296U3dkeFpnIiwib3duZXJOYW1lIjoiQWthc2giLCJvd25lckVtYWlsIjoiYWthc2hqYWlzd2FsMzM0QGdtYWlsLmNvbSIsInJvbGxObyI6IjIxMDUyOTM1In0.i2RwMVr_7RcPti2sCu5nBQTzxqbtAK6OidS6Ep0wngs'
+}
 
 @app.route('/categories/<string:categoryname>/products', methods=['GET'])
 def get_top_products(categoryname):
@@ -22,19 +27,19 @@ def get_top_products(categoryname):
             'minPrice': min_price,
             'maxPrice': max_price
         }
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params, headers=auth_header)
         data = response.json()
         products.extend(data['products'])
 
-    
+    # Sorting
     products.sort(key=lambda x: x[sort_by], reverse=(sort_order == 'desc'))
 
-    
+    # Pagination
     start_index = (page - 1) * n
     end_index = start_index + n
     products = products[start_index:end_index]
 
-    
+    # Custom unique ID
     for product in products:
         product['id'] = f'{categoryname}-{product["company"]}-{product["name"]}-{product["price"]}'
 
@@ -59,7 +64,7 @@ def get_product_details(categoryname, productid):
             "rating": 4.5,
             "discount": 10
         },
-        
+        # ... more products
     ]
 
     product = next((p for p in products if p['id'] == productid), None)
