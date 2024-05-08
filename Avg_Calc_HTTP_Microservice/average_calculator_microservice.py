@@ -1,88 +1,66 @@
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 import requests
-import threading
-import time
 from collections import deque
+import time
 
 app = Flask(__name__)
 
-# Constants
 WINDOW_SIZE = 10
-TEST_SERVER_URL = "http://20.244.56.144/test"
+window = deque(maxlen=WINDOW_SIZE)
+avg = 0.0
 
-# Global variables
-numbers_queue = deque(maxlen=WINDOW_SIZE)
-lock = threading.Lock()
 
-def fetch_numbers():
-    try:
-        response = requests.get(TEST_SERVER_URL)
-        if response.status_code == 200:
-            return response.json()
-    except Exception as e:
-        print("Error fetching numbers from the test server:", e)
-    return None
+def fetch_numbers(number_type):
+    url = f"http://20.244.56.144/test/{number_type}"
+    headers = {
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiZXhwIjoxNzE1MTUwOTY1LCJpYXQiOjE3MTUxNTA2NjUsImlzcyI6IkFmZm9yZG1lZCIsImp0aSI6Ijg4ZDAzMjlmLTNkY2UtNDEzNS05MWY1LTliMzAyNmQ2ZjhlZSIsInN1YiI6ImFrYXNoamFpc3dhbDMzNEBnbWFpbC5jb20ifSwiY29tcGFueU5hbWUiOiJqYWlTb2xuIiwiY2xpZW50SUQiOiI4OGQwMzI5Zi0zZGNlLTQxMzUtOTFmNS05YjMwMjZkNmY4ZWUiLCJjbGllbnRTZWNyZXQiOiJLUlVuWHZ1Z296U3dkeFpnIiwib3duZXJOYW1lIjoiQWthc2giLCJvd25lckVtYWlsIjoiYWthc2hqYWlzd2FsMzM0QGdtYWlsLmNvbSIsInJvbGxObyI6IjIxMDUyOTM1In0.i2RwMVr_7RcPti2sCu5nBQTzxqbtAK6OidS6Ep0wngs"
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return response.json()["numbers"]
+    else:
+        return None
 
-def update_numbers():
-    while True:
-        with lock:
-            numbers = fetch_numbers()
-            if numbers:
-                for num in numbers:
-                    if num not in numbers_queue:
-                        numbers_queue.append(num)
-        time.sleep(1)  # Fetch numbers every second
 
-update_thread = threading.Thread(target=update_numbers)
-update_thread.daemon = True
-update_thread.start()
+def calculate_avg():
+    if len(window) == 0:
+        return 0.0
+    return sum(window) / len(window)
 
-@app.route("/numbers/<numberid>")
-def calculate_average(numberid):
-    with lock:
-        numbers = list(numbers_queue)
-        numbers_copy = numbers.copy()
-        if numberid == "p":
-            numbers = [num for num in numbers if is_prime(num)]
-        elif numberid == "f":
-            numbers = [num for num in numbers if is_fibonacci(num)]
-        elif numberid == "e":
-            numbers = [num for num in numbers if num % 2 == 0]
-        elif numberid == "r":
-            # No filtering needed for random numbers
-            pass
 
-        window_prev_state = numbers_copy[-WINDOW_SIZE:]
-        window_curr_state = list(numbers)
-        avg = sum(numbers) / len(numbers) if numbers else 0
+@app.route('/numbers/<number_type>', methods=['GET'])
+def get_numbers(number_type):
+    global window
+    global avg
 
-        response = {
-            "numbers": numbers,
-            "windowPrevState": window_prev_state,
-            "windowCurrState": window_curr_state,
-            "avg": avg
-        }
-        return jsonify(response)
+    start_time = time.time()
 
-def is_prime(n):
-    if n <= 1:
-        return False
-    if n <= 3:
-        return True
-    if n % 2 == 0 or n % 3 == 0:
-        return False
-    i = 5
-    while i * i <= n:
-        if n % i == 0 or n % (i + 2) == 0:
-            return False
-        i += 6
-    return True
+    
+    numbers = fetch_numbers(number_type)
 
-def is_fibonacci(n):
-    return is_square(5 * n * n + 4) or is_square(5 * n * n - 4)
+    if numbers is None:
+        return jsonify({"error": "Failed to fetch numbers from the test server."}), 500
 
-def is_square(x):
-    return int(x**0.5)**2 == x
+    
+    window.extend(numbers)
 
-if __name__ == "__main__":
-    app.run(port=9876)
+    
+    avg = calculate_avg()
+
+    
+    response_data = {
+        "numbers": numbers,
+        "windowPrevState": list(window)[-len(numbers)-1:-1],
+        "windowCurrState": list(window)[-len(numbers):],
+        "avg": avg
+    }
+
+    
+    elapsed_time = time.time() - start_time
+    if elapsed_time > 0.5:
+        return jsonify({"error": "Response time exceeded 500 milliseconds."}), 500
+
+    return jsonify(response_data)
+
+if __name__ == '__main__':
+    app.run(host='localhost', port=9876)
