@@ -16,7 +16,7 @@ def fetch_numbers(endpoint):
             response = requests.get(endpoint)
             if response.status_code == 200:
                 numbers = response.json()
-                last_request_time = time.time()  
+                last_request_time = time.time()
                 return numbers
             else:
                 print("Error: Failed to fetch numbers. Status code:", response.status_code)
